@@ -427,9 +427,33 @@ function renderDashboard() {
   g('kpi-savings').textContent   = fmt(mon.bal);
 
   renderTxItems('recent-list', S.transactions.slice(0,5), true);
-  renderPieChart(txs);
+  renderDashAccounts();
   renderBarChart();
   renderAlerts(txs);
+}
+
+function renderDashAccounts() {
+  const el = g('dash-accounts-list');
+  if (!el) return;
+  el.innerHTML = S.accounts.map(a => {
+    let bal = Number(a.initialBalance) || 0;
+    S.transactions.forEach(t => { 
+      if (t.accountId === a.id) {
+        if(t.type === 'income') bal += t.amount;
+        else if(t.type === 'expense' || t.type === 'transfer') bal -= t.amount;
+      }
+      if (t.type === 'transfer' && t.toAccountId === a.id) {
+        bal += t.amount;
+      }
+    });
+    return `<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:12px; border-radius:12px; cursor:pointer;" onclick="goTo('page-accounts')">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; background:${a.color}22;">${a.icon}</div>
+        <div style="font-weight:600; color:#f1f5f9;">${h(a.name)}</div>
+      </div>
+      <div style="font-family:'SF Mono', monospace; font-weight:700; color:#f1f5f9; letter-spacing:-0.5px;">${fmt(bal)}</div>
+    </div>`;
+  }).join('');
 }
 
 function renderAlerts(txs) {
