@@ -557,7 +557,7 @@ function openTxModal(id=null) {
     g('tx-date').value=tx.date; g('tx-notes').value=tx.notes||'';
   } else {
     g('tx-modal-title').textContent = 'Add Transaction';
-    setTab('expense'); populateCatSelect('expense'); 
+    setTab('income'); populateCatSelect('income'); 
     populateAccSelect(S.accounts.length > 0 ? S.accounts[0].id : null, S.accounts.length > 1 ? S.accounts[1].id : null);
   }
   g('tx-modal-bg').classList.remove('hidden');
