@@ -385,7 +385,10 @@ function thisMonth() { return new Date().toISOString().slice(0,7); }
 function txsOf(ym) { return S.transactions.filter(t=>t.date.startsWith(ym)); }
 function stats(txs) {
   let inc=0, exp=0;
-  txs.forEach(t => { if(t.type==='income') inc+=t.amount; else exp+=t.amount; });
+  txs.forEach(t => { 
+    if(t.type==='income') inc+=t.amount; 
+    else if(t.type==='expense') exp+=t.amount; 
+  });
   return { inc, exp, bal: inc-exp, sav: Math.max(0, inc-exp) };
 }
 function monthName(ym) {
@@ -523,16 +526,19 @@ function initTxModal() {
 
   document.querySelectorAll('.type-tab').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.type-tab').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      populateCatSelect(btn.dataset.t);
+      setTab(btn.dataset.t);
+      if (btn.dataset.t !== 'transfer') populateCatSelect(btn.dataset.t);
     });
   });
 }
 
-function populateAccSelect(sel=null) {
+function populateAccSelect(sel=null, toSel=null) {
   g('tx-account').innerHTML = S.accounts.map(a=>
     `<option value="${a.id}" ${a.id===sel?'selected':''}>${a.icon} ${a.name}</option>`).join('');
+  if (g('tx-to-account')) {
+    g('tx-to-account').innerHTML = S.accounts.map(a=>
+      `<option value="${a.id}" ${a.id===toSel?'selected':''}>${a.icon} ${a.name}</option>`).join('');
+  }
 }
 
 function openTxModal(id=null) {
@@ -544,13 +550,15 @@ function openTxModal(id=null) {
     const tx = S.transactions.find(t=>t.id===id);
     if (!tx) return;
     g('tx-modal-title').textContent = 'Edit Transaction';
-    setTab(tx.type); populateCatSelect(tx.type, tx.category); populateAccSelect(tx.accountId);
+    setTab(tx.type); 
+    if (tx.type !== 'transfer') populateCatSelect(tx.type, tx.category); 
+    populateAccSelect(tx.accountId, tx.toAccountId);
     g('tx-desc').value=tx.name; g('tx-amount').value=tx.amount;
     g('tx-date').value=tx.date; g('tx-notes').value=tx.notes||'';
   } else {
     g('tx-modal-title').textContent = 'Add Transaction';
-    setTab('income'); populateCatSelect('income'); 
-    populateAccSelect(S.accounts.length > 0 ? S.accounts[0].id : null);
+    setTab('expense'); populateCatSelect('expense'); 
+    populateAccSelect(S.accounts.length > 0 ? S.accounts[0].id : null, S.accounts.length > 1 ? S.accounts[1].id : null);
   }
   g('tx-modal-bg').classList.remove('hidden');
   g('tx-desc').focus();
@@ -563,11 +571,25 @@ function setTab(type) {
   if (g('tx-split-btn')) {
     if (type === 'income') {
       g('tx-split-label').classList.remove('hidden');
+      g('tx-to-account-row').classList.add('hidden');
+      g('tx-cat-row').classList.remove('hidden');
+      g('tx-account-label').textContent = 'Account';
       toggleTxSplit();
+    } else if (type === 'transfer') {
+      g('tx-split-label').classList.add('hidden');
+      g('tx-split-btn').classList.add('hidden');
+      g('tx-account').style.display = 'block';
+      g('tx-to-account-row').classList.remove('hidden');
+      g('tx-cat-row').classList.add('hidden');
+      g('tx-account-label').textContent = 'From Account';
+      if(g('tx-desc').value === '') g('tx-desc').value = 'Transfer';
     } else {
       g('tx-split-label').classList.add('hidden');
       g('tx-split-btn').classList.add('hidden');
       g('tx-account').style.display = 'block';
+      g('tx-to-account-row').classList.add('hidden');
+      g('tx-cat-row').classList.remove('hidden');
+      g('tx-account-label').textContent = 'Account';
     }
   }
 }
@@ -595,13 +617,19 @@ async function saveTxHandler() {
   const date  = g('tx-date').value;
   const cat   = g('tx-cat').value;
   const acc   = g('tx-account').value;
+  const toAcc = g('tx-to-account').value;
   const notes = g('tx-notes').value.trim();
   const useSplit = type === 'income' && g('tx-use-split')?.checked;
 
   if (!name) { toast('Enter a description.','error'); return; }
   if (!amt||amt<=0) { toast('Enter a valid amount.','error'); return; }
   if (!date) { toast('Pick a date.','error'); return; }
-  if (!useSplit && !acc) { toast('Please create an account first.','error'); return; }
+  if (type === 'transfer') {
+    if (!acc || !toAcc) { toast('Please create two accounts first.','error'); return; }
+    if (acc === toAcc) { toast('Cannot transfer to the same account.','error'); return; }
+  } else {
+    if (!useSplit && !acc) { toast('Please create an account first.','error'); return; }
+  }
 
   let txsToSave = [];
 
@@ -609,7 +637,7 @@ async function saveTxHandler() {
     const i = S.transactions.findIndex(t=>t.id===editingTx);
     if (i!==-1) {
       if (useSplit) { toast('Cannot auto-split when editing a transaction.', 'error'); return; }
-      const tx = {...S.transactions[i],type,name,amount:amt,date,category:cat,accountId:acc,notes};
+      const tx = {...S.transactions[i],type,name,amount:amt,date,category:cat,accountId:acc,toAccountId:toAcc,notes};
       S.transactions[i] = tx;
       txsToSave.push(tx);
       toast('Transaction updated!');
@@ -631,6 +659,11 @@ async function saveTxHandler() {
         txsToSave.push(tx);
       });
       toast('Split transactions added!');
+    } else if (type === 'transfer') {
+      const tx = {id:uid(),type,name,amount:amt,date,accountId:acc,toAccountId:toAcc,notes};
+      S.transactions.unshift(tx);
+      txsToSave.push(tx);
+      toast('Transfer added!');
     } else {
       const tx = {id:uid(),type,name,amount:amt,date,category:cat,accountId:acc,notes};
       S.transactions.unshift(tx);
@@ -666,15 +699,25 @@ function renderTxItems(containerId, txs, compact=false) {
     return;
   }
   el.innerHTML = txs.map(tx => {
-    const cat = getCat(tx.category);
+    let catIcon, catBg, catLabel, amtClass, amtPrefix;
+    if (tx.type === 'transfer') {
+      const fromAcc = S.accounts.find(a => a.id === tx.accountId)?.name || 'Account';
+      const toAcc = S.accounts.find(a => a.id === tx.toAccountId)?.name || 'Account';
+      catIcon = '🔄'; catBg = '#888888'; catLabel = `${fromAcc} ➔ ${toAcc}`;
+      amtClass = 'transfer'; amtPrefix = '';
+    } else {
+      const cat = getCat(tx.category);
+      catIcon = cat.icon; catBg = cat.color; catLabel = cat.label;
+      amtClass = tx.type; amtPrefix = tx.type === 'income' ? '+' : '-';
+    }
     const d = new Date(tx.date+'T00:00:00').toLocaleDateString('default',{day:'numeric',month:'short',year:'numeric'});
     return `<div class="tx-item">
-      <div class="tx-cat-icon" style="background:${cat.color}22">${cat.icon}</div>
+      <div class="tx-cat-icon" style="background:${catBg}22">${catIcon}</div>
       <div class="tx-info">
         <div class="tx-name">${h(tx.name)}</div>
-        <div class="tx-meta">${cat.label} · ${d}${tx.notes?' · '+h(tx.notes):''}</div>
+        <div class="tx-meta">${catLabel} · ${d}${tx.notes?' · '+h(tx.notes):''}</div>
       </div>
-      <div class="tx-amount ${tx.type}">${tx.type==='income'?'+':'-'}${fmt(tx.amount)}</div>
+      <div class="tx-amount ${amtClass}" ${tx.type==='transfer'?'style="color:#64748b"':''}>${amtPrefix}${fmt(tx.amount)}</div>
       ${compact?'':` <div class="tx-btns">
         <button class="tx-btn" onclick="openTxModal('${tx.id}')" title="Edit">✏️</button>
         <button class="tx-btn" onclick="removeTx('${tx.id}')" title="Delete">🗑️</button>
@@ -824,9 +867,16 @@ function renderAccounts() {
   if (!el) return;
 
   el.innerHTML = S.accounts.map(a => {
-    const accTxs = S.transactions.filter(t => t.accountId === a.id);
     let bal = Number(a.initialBalance) || 0;
-    accTxs.forEach(t => { if(t.type==='income') bal+=t.amount; else bal-=t.amount; });
+    S.transactions.forEach(t => { 
+      if (t.accountId === a.id) {
+        if(t.type === 'income') bal += t.amount;
+        else if(t.type === 'expense' || t.type === 'transfer') bal -= t.amount;
+      }
+      if (t.type === 'transfer' && t.toAccountId === a.id) {
+        bal += t.amount;
+      }
+    });
     const isMain = a.name === 'Main Account';
     return `<div class="acc-card">
       <div class="acc-card-icon" style="background:${a.color}22">${a.icon}</div>

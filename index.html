@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
 
@@ -450,10 +450,11 @@
     <div class="type-row">
       <button class="type-tab active" data-t="income">📥 Income</button>
       <button class="type-tab" data-t="expense">📤 Expense</button>
+      <button class="type-tab" data-t="transfer">🔄 Transfer</button>
     </div>
     <div class="form-body">
       <div class="form-row" id="tx-account-row">
-        <label>Account</label>
+        <label id="tx-account-label">Account</label>
         <div style="display:flex; gap: 8px;">
           <select id="tx-account" style="flex:1;"></select>
           <button id="tx-split-btn" class="btn-ghost hidden" style="padding: 0 12px; font-size: 16px;" title="Configure Splits" onclick="openSplitModal()">⚙️</button>
@@ -462,6 +463,10 @@
           <input type="checkbox" id="tx-use-split" style="width:16px; height:16px;" onchange="toggleTxSplit()" />
           Apply Auto-Split Rules
         </label>
+      </div>
+      <div class="form-row hidden" id="tx-to-account-row">
+        <label>To Account</label>
+        <select id="tx-to-account"></select>
       </div>
       <div class="form-row">
         <label>Description</label>
@@ -477,7 +482,7 @@
           <input id="tx-date" type="date" />
         </div>
       </div>
-      <div class="form-row">
+      <div class="form-row" id="tx-cat-row">
         <label>Category</label>
         <select id="tx-cat"></select>
       </div>
@@ -634,7 +639,7 @@
   </div>
 </div>
 
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 
 <script>
   if ('serviceWorker' in navigator) {

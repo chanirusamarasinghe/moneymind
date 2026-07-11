@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────
 //  MoneyMind — Service Worker (PWA)
 // ─────────────────────────────────────────────
-const CACHE_NAME = 'moneymind-v6';
+const CACHE_NAME = 'moneymind-v7';
 const ASSETS = [
   '/',
   '/index.html',
