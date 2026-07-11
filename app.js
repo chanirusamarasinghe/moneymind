@@ -446,7 +446,7 @@ function renderDashAccounts() {
         bal += t.amount;
       }
     });
-    return `<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:12px; border-radius:12px; cursor:pointer;" onclick="goTo('page-accounts')">
+    return `<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:12px; border-radius:12px; cursor:pointer;" onclick="goTo('accounts')">
       <div style="display:flex; align-items:center; gap:12px;">
         <div style="width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; background:${a.color}22;">${a.icon}</div>
         <div style="font-weight:600; color:#f1f5f9;">${h(a.name)}</div>
