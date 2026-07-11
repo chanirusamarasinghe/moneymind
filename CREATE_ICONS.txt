@@ -1,0 +1,17 @@
+Instructions to create PWA icons:
+
+1. Go to: https://favicon.io/favicon-generator/
+2. In "Text" field type: MM
+3. Background: Rounded
+4. Background color: #4f8ef7 (blue)
+5. Font color: #ffffff (white)
+6. Font size: 80
+7. Click "Generate"
+8. Download the zip file
+9. Inside the zip, find favicon.ico, apple-touch-icon.png, favicon-32x32.png
+10. Create a folder called "icons" inside money-manager/
+11. Copy apple-touch-icon.png to icons/ and rename to icon-192.png
+12. Also copy it as icon-512.png
+
+OR just skip icons — the app works fine without them!
+The PWA will still be installable, just without a custom icon.
