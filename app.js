@@ -99,6 +99,52 @@ auth.onAuthStateChanged(async user => {
   }
 });
 
+let isSignUpMode = false;
+
+function toggleAuthMode() {
+  isSignUpMode = !isSignUpMode;
+  g('auth-title').textContent = isSignUpMode ? 'Create Account' : 'Sign In';
+  g('auth-action-btn').textContent = isSignUpMode ? 'Sign Up' : 'Sign In';
+  g('auth-toggle-text').textContent = isSignUpMode ? 'Already have an account?' : "Don't have an account?";
+  g('auth-toggle-btn').textContent = isSignUpMode ? 'Sign in' : 'Sign up';
+}
+
+function handleAuthAction() {
+  const email = g('auth-email').value.trim();
+  const password = g('auth-password').value;
+  const btn = g('auth-action-btn');
+
+  if (!email || !password) {
+    toast('Please enter both email and password.', 'error');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Please wait...';
+
+  if (isSignUpMode) {
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(() => {
+        toast('Account created successfully!');
+      })
+      .catch(e => {
+        toast(e.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Sign Up';
+      });
+  } else {
+    auth.signInWithEmailAndPassword(email, password)
+      .then(() => {
+        toast('Signed in successfully!');
+      })
+      .catch(e => {
+        toast('Invalid email or password.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+      });
+  }
+}
+
 function signInGoogle() {
   const btn = g('google-btn');
   btn.disabled = true;

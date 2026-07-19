@@ -153,6 +153,25 @@ input, select, textarea { font-family: inherit; }
 }
 #google-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.35); }
 #google-btn:active { transform: translateY(0); }
+
+/* Email Auth Styles */
+.auth-form {
+  display: flex; flex-direction: column; gap: 12px;
+  text-align: left; margin-bottom: 8px;
+}
+.auth-form h3 { font-size: 18px; font-weight: 700; margin-bottom: 4px; text-align: center; }
+.auth-form input {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--r1); padding: 12px 14px;
+  color: var(--text1); font-size: 14px; outline: none;
+  transition: var(--transition);
+}
+.auth-form input:focus { border-color: var(--blue); }
+.auth-toggle { display: flex; justify-content: center; gap: 6px; font-size: 13px; margin-top: 4px; color: var(--text2); }
+.auth-divider { display: flex; align-items: center; margin: 20px 0; color: var(--text3); font-size: 12px; font-weight: 700; }
+.auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.auth-divider span { padding: 0 10px; }
+
 .login-privacy { font-size: 11px; color: var(--text3); margin-top: 14px; }
 
 /* ── ONBOARDING ── */
