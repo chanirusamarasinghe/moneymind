@@ -107,6 +107,22 @@ function toggleAuthMode() {
   g('auth-action-btn').textContent = isSignUpMode ? 'Sign Up' : 'Sign In';
   g('auth-toggle-text').textContent = isSignUpMode ? 'Already have an account?' : "Don't have an account?";
   g('auth-toggle-btn').textContent = isSignUpMode ? 'Sign in' : 'Sign up';
+  if (g('auth-forgot-btn')) g('auth-forgot-btn').style.display = isSignUpMode ? 'none' : 'inline-block';
+}
+
+function handleForgotPassword() {
+  const email = g('auth-email').value.trim();
+  if (!email) {
+    toast('Please enter your email address first.', 'error');
+    return;
+  }
+  auth.sendPasswordResetEmail(email)
+    .then(() => {
+      toast('Password reset link sent to your email!');
+    })
+    .catch(e => {
+      toast(e.message, 'error');
+    });
 }
 
 function handleAuthAction() {

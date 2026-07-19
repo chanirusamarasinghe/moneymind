@@ -49,6 +49,9 @@
       <h3 id="auth-title">Sign In</h3>
       <input type="email" id="auth-email" placeholder="Email address" autocomplete="email" />
       <input type="password" id="auth-password" placeholder="Password" />
+      <div style="text-align: right; margin-top: -6px;">
+        <button class="link-btn" id="auth-forgot-btn" onclick="handleForgotPassword()" style="font-size: 12px;">Forgot password?</button>
+      </div>
       <button class="btn-primary" id="auth-action-btn" onclick="handleAuthAction()">Sign In</button>
       <div class="auth-toggle">
         <span id="auth-toggle-text">Don't have an account?</span>
